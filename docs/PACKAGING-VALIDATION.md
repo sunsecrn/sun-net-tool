@@ -19,3 +19,5 @@ O Gitleaks sinalizou originalmente o literal `SYNTHETIC_SECRET_NEVER_VALID_12345
 Os únicos IPs privados literais no código são exemplos, fixtures e o endereço interno fixo da VPN. Relatórios históricos com informações de sessão e demais screenshots foram excluídos antes do primeiro commit e preservados somente no ambiente local. O commit usa email GitHub noreply.
 
 Não foram executados nesta tarefa testes instrumentados em aparelhos, scans, consultas NVD, probes de rede, testes de instalação/atualização com chave release ou publicação de Release. A execução real de CI pode ser consultada em [Actions](https://github.com/sunsecrn/sun-net-tool/actions). Assinatura e primeira Release continuam dependentes da configuração documentada em [RELEASING.md](RELEASING.md).
+
+A primeira execução no GitHub falhou na preparação do SDK (`sdkmanager` ausente do PATH), antes dos testes. O workflow passou a preparar explicitamente o SDK com setup-android fixada em SHA; consulte a execução posterior em Actions.

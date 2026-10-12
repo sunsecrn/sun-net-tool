@@ -10,7 +10,7 @@ Repositório solicitado: `sunsecrn/sun-net-tool` (público). Não havia Git ou r
 - `android-release.yml`: somente execução manual a partir de `main`. Recebe tag `vX.Y.Z` já existente, exige ancestralidade em `main` e igualdade com `versionName` do APK. Recompila e testa o código dessa tag, sem segredos.
 - Assinatura em runner separado, sem checkout ou Gradle. Recebe somente artefatos da mesma execução; não baixa artefatos de PR. Keystore temporário com permissões restritas, senhas via ambiente, limpeza ao terminar. `apksigner verify` e comparação obrigatória com fingerprint esperado; `zipalign` verifica alinhamento de 16 KiB.
 - Apenas o job final tem `contents: write`. Não executa código do repositório; verifica checksums e cria **rascunho**, sem sobrescrever Release existente nem publicar automaticamente.
-- Actions fixadas por SHA completo, conferidos contra tags dos repositórios oficiais: checkout v4.2.2, setup-java v4.7.1, upload-artifact v4.6.2 e download-artifact v4.3.0. Atualizações devem passar por revisão. O wrapper fixa e verifica o SHA-256 do Gradle.
+- Actions fixadas por SHA completo, conferidos contra tags dos repositórios oficiais: checkout v4.2.2, setup-java v4.7.1, upload-artifact v4.6.2 e download-artifact v4.3.0; setup-android v3.2.2 do projeto android-actions. Atualizações devem passar por revisão. O wrapper fixa e verifica o SHA-256 do Gradle.
 - Builds usam dependências Maven versionadas, mas não têm lockfile/verificação de todos os artefatos transitivos; não há promessa de reprodução bit a bit ou cadeia de fornecimento inteiramente hermética.
 
 ## Configuração pelo mantenedor
