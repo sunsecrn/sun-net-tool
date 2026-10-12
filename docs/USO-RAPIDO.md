@@ -17,7 +17,7 @@ O relatório JSON contém sessão, ações de diagnóstico iniciadas, horários,
 
 Relatórios mascaram credenciais conhecidas e parâmetros de URL. PCAP contém bytes originais, inclusive dados claros possivelmente sensíveis; prefira JSON da sessão ao compartilhar análise geral. Até 20 sessões e 4.000 grupos/eventos por sessão. Captura limitada a10min/25MiB, somente NetTool, sem descriptografia HTTPS.
 
-O roteiro final da rede conhecida está em roteiro-teste-final.md, ainda PENDENTE. Não confundir ensaios de desenvolvimento com sua execução. O app não garante descobrir segundo range ou todos domínios internos sem evidências observáveis.
+Roteiros particulares e relatórios de sessões não são publicados. Os ensaios de desenvolvimento não garantem cobertura de uma rede específica. O app não garante descobrir segundo range ou todos domínios internos sem evidências observáveis.
 
 
 ## Leitura de evidências e cobertura (0.4.1)

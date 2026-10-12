@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Exact synthetic laboratory fixture; never a usable credential"
+regexTarget = "secret"
+regexes = ['''^SYNTHETIC_SECRET_NEVER_VALID_123456$''']
