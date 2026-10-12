@@ -1,0 +1,136 @@
+name: Android Release (draft)
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing reviewed tag on main (example: v0.6.0)'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    outputs:
+      tag: ${{ steps.source.outputs.tag }}
+      commit: ${{ steps.source.outputs.commit }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate and select reviewed tag
+        id: source
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          commit=$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")
+          git merge-base --is-ancestor "$commit" origin/main
+          git checkout --detach "$commit"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android components
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018' 'cmake;3.22.1'
+      - name: Build without signing secrets
+        run: ./gradlew --no-daemon :app:testReleaseUnitTest :app:lintRelease :app:assembleRelease
+      - name: Package exact source and unsigned APK
+        env:
+          RELEASE_TAG: ${{ steps.source.outputs.tag }}
+        run: |
+          apk=app/build/outputs/apk/release/app-release-unsigned.apk
+          version=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$apk" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
+          test "v$version" = "$RELEASE_TAG"
+          mkdir artifacts
+          cp "$apk" artifacts/unsigned.apk
+          git archive --format=tar.gz --prefix=sun-net-tool/ HEAD > artifacts/source.tar.gz
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: unsigned-release
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 1
+  sign:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release-signing
+    steps:
+      # No checkout or Gradle in the job holding signing secrets.
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: unsigned-release
+          path: input
+      - name: Install build tools
+        run: sdkmanager 'build-tools;35.0.0'
+      - name: Sign and verify pinned certificate
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          EXPECTED_CERT: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          SOURCE_COMMIT: ${{ needs.build.outputs.commit }}
+        run: |
+          set -euo pipefail
+          : "${KEYSTORE_BASE64:?Missing signing keystore}"
+          : "${KEYSTORE_PASSWORD:?Missing keystore password}"
+          : "${KEY_ALIAS:?Missing key alias}"
+          : "${KEY_PASSWORD:?Missing key password}"
+          [[ "$EXPECTED_CERT" =~ ^[a-fA-F0-9]{64}$ ]]
+          umask 077
+          keydir=$(mktemp -d "$RUNNER_TEMP/signing.XXXXXX")
+          trap 'rm -rf "$keydir"' EXIT
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keydir/release.jks"
+          unset KEYSTORE_BASE64
+          mkdir output
+          tools="$ANDROID_HOME/build-tools/35.0.0"
+          apk="output/sun-net-tool-$RELEASE_TAG-release.apk"
+          "$tools/zipalign" -P 16 -f 4 input/unsigned.apk "$keydir/aligned.apk"
+          "$tools/apksigner" sign --ks "$keydir/release.jks" --ks-key-alias "$KEY_ALIAS" --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD --out "$apk" "$keydir/aligned.apk"
+          "$tools/apksigner" verify --verbose --print-certs "$apk" > "$keydir/verification.txt"
+          actual=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$keydir/verification.txt")
+          test "${actual,,}" = "${EXPECTED_CERT,,}"
+          "$tools/zipalign" -c -P 16 4 "$apk"
+          cp input/source.tar.gz "output/sun-net-tool-$RELEASE_TAG-source.tar.gz"
+          printf 'Tag: %s\nSource commit: %s\nCertificate SHA-256: %s\n' "$RELEASE_TAG" "$SOURCE_COMMIT" "$actual" > output/BUILD-INFO.txt
+          cd output
+          sha256sum ./*.apk ./*.tar.gz BUILD-INFO.txt > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: signed-release
+          path: output/
+          if-no-files-found: error
+          retention-days: 7
+  draft:
+    needs: [build, sign]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release-publication
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: signed-release
+          path: output
+      - name: Verify files and create draft only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          cd output
+          sha256sum --check SHA256SUMS
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "Sun NetTool $RELEASE_TAG" --notes-file BUILD-INFO.txt \
+            "sun-net-tool-$RELEASE_TAG-release.apk" "sun-net-tool-$RELEASE_TAG-source.tar.gz" BUILD-INFO.txt SHA256SUMS

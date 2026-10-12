@@ -1,0 +1,64 @@
+.gradle/
+.kotlin/
+**/build/
+**/.cxx/
+**/.externalNativeBuild/
+local.properties
+*.iml
+.idea/
+.vscode/
+.DS_Store
+__pycache__/
+*.py[cod]
+.agents/
+.codex/
+.aws/
+.env
+.env.*
+*.local
+# Signing and credentials
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+key.properties
+keystore.properties
+credentials*.json
+service-account*.json
+# Private exports and generated packages
+local-evidence/
+dist/
+artifacts/
+*.apk
+*.aab
+*.apks
+*.pcap
+*.pcapng
+*.cap
+*.csv
+*.log
+*.hprof
+*.zip
+# Only visually reviewed screenshots are allowed.
+docs/screenshots/*
+!docs/screenshots/a17-0.3.2-guide.png
+!docs/screenshots/s23-0.4.0-profile.png
+# Session/device exports: allow new JSON fixtures only after explicit review.
+*.json
+*.jsonl
+*.ndjson
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.har
+*.dump
+*.trace
+*.bak
+# Historical device/session reports are private, even when written as Markdown.
+docs/VALIDATION.md
+docs/A17-VALIDATION.md
+docs/roteiro-teste-final.md
