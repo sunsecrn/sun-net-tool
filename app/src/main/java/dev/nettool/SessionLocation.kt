@@ -60,7 +60,7 @@ class SessionLocation(private val context:Context,private val onFix:(Record)->Un
         val providers=listOfNotNull(LocationManager.GPS_PROVIDER.takeIf {fine},LocationManager.NETWORK_PROVIDER).filter {manager.isProviderEnabled(it)}
         listening=true
         var registered=0
-        providers.forEach {provider->runCatching {manager.requestLocationUpdates(provider,30_000L,10f,listener,Looper.getMainLooper());registered++}.onFailure {status.value="Não foi possível iniciar a localização"}}
+        providers.forEach {provider->runCatching {manager.requestLocationUpdates(provider,30_000L,0f,listener,Looper.getMainLooper());registered++}.onFailure {status.value="Não foi possível iniciar a localização"}}
         if(registered==0) {listening=false;status.value="Nenhum provedor de localização disponível ou autorizado"} else status.value="Aguardando posição recente (${if(fine) "precisa" else "aproximada"})"
     }
     fun close() {manager.removeUpdates(listener);listening=false;latest=null}

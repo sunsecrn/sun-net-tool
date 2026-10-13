@@ -146,7 +146,7 @@ fun NetToolScreen(model:InvestigationModel,onCapture:()->Unit,onStopCapture:()->
             withFrameNanos { }
             listState.scrollToItem(step.item)
             withFrameNanos { }
-            tutorTargets[tutorStep]?.takeIf {it.isAttached}?.let { coords ->
+            tutorTargets[tutorStep]?.takeIf {it.isAttached && tutorStep!=9}?.let { coords ->
                 val y=coords.localToRoot(androidx.compose.ui.geometry.Offset.Zero).y
                 val desired=with(androidx.compose.ui.unit.Density(context.resources.displayMetrics.density)) {160.dp.toPx()}
                 listState.scroll {scrollBy(y-desired)}
@@ -242,7 +242,7 @@ Panel("Registro debug", "OPCIONAL") {
         topBar={ TopAppBar(title={ Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
             Surface(color=MaterialTheme.colorScheme.primaryContainer,shape=RoundedCornerShape(10.dp)) { Box(Modifier.size(36.dp),contentAlignment=Alignment.Center) { Image(painterResource(R.drawable.ic_sunsec),contentDescription="Sunsec",modifier=Modifier.height(30.dp).aspectRatio(152.492f/157.782f)) } }
             Column { Text("Sun NetTool",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.SemiBold); Text("DIAGNÓSTICO DE REDE",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant) }
-        } }, actions={ Box {IconButton(onClick={model.trace("menu_open");menuOpen=true},modifier=Modifier.semantics {contentDescription="Abrir menu"}) {MenuGlyph("menu")}; DropdownMenu(expanded=menuOpen,onDismissRequest={model.trace("menu_dismissed");menuOpen=false}) {
+        } }, actions={ Box {IconButton(onClick={useTutorTarget();model.trace("menu_open");menuOpen=true},modifier=Modifier.tutorTarget(9).semantics {contentDescription="Abrir menu"}) {MenuGlyph("menu")}; DropdownMenu(expanded=menuOpen,onDismissRequest={model.trace("menu_dismissed");menuOpen=false}) {
                 DropdownMenuItem(text={Text("Configurações gerais")},leadingIcon={MenuGlyph("settings")},onClick={menuOpen=false;showGeneralSettings=true})
 DropdownMenuItem(text={Text("Nova sessão")},leadingIcon={MenuGlyph("new")},onClick={menuOpen=false;model.newSession()},enabled=!busy&&!capture.running); DropdownMenuItem(text={Text("Modo tutor")},leadingIcon={MenuGlyph("info")},onClick={
                 menuOpen=false;tutorReturnTab=tab;tutorReturnItem=listState.firstVisibleItemIndex;tutorReturnOffset=listState.firstVisibleItemScrollOffset
@@ -334,7 +334,7 @@ DropdownMenuItem(text={Text("Nova sessão")},leadingIcon={MenuGlyph("new")},onCl
                 }
                 1 -> {
                     item {SectionTitle("Alvos e achados","Endereços, serviços e evidências em um só lugar.")}
-                    item {FlowRow(modifier=Modifier.tutorTarget(3),horizontalArrangement=Arrangement.spacedBy(8.dp)) {listOf("Todos","IPs","Domínios","Serviços","Respostas","Referências","Indícios","DNS","Portal","Segurança").forEach { filter -> FilterChip(selected=inventoryFilter==filter,onClick={useTutorTarget();inventoryFilter=filter},label={Text(filter)}) }}}
+                    item {FlowRow(modifier=Modifier.tutorTarget(3),horizontalArrangement=Arrangement.spacedBy(8.dp)) {listOf("Todos","IPs","Domínios","Serviços","Respostas","Referências","Indícios","DNS","Portal","Segurança").forEach { filter -> FilterChip(modifier=if(filter=="Segurança") Modifier.tutorTarget(7) else Modifier,selected=inventoryFilter==filter,onClick={useTutorTarget();inventoryFilter=filter},label={Text(filter)}) }}}
                     if(inventoryFilter in setOf("Todos","IPs","Domínios","Serviços")) item {Field(targetQuery,{targetQuery=it},"Buscar IP, nome, porta ou protocolo")}
                     if(inventoryFilter=="Serviços") item {FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {listOf("Todos","Reconhecidos","Tipo desconhecido").forEach {f->FilterChip(selected=serviceFilter==f,onClick={serviceFilter=f},label={Text(f)})}}}
                     if(inventoryFilter=="Segurança") item {FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp)) {listOf("Todos","Versões","Headers","CVEs","Consultas").forEach {f->FilterChip(selected=securityFilter==f,onClick={securityFilter=f},label={Text(f)})}};Hint("Versões anunciadas e headers são analisados nas novas respostas HTTP e banners SSH. CVEs exigem consulta explícita à NVD; são possíveis correspondências, não falhas confirmadas.")}
@@ -357,7 +357,7 @@ DropdownMenuItem(text={Text("Nova sessão")},leadingIcon={MenuGlyph("new")},onCl
                         Text("O que observar",style=MaterialTheme.typography.labelLarge)
                         Hint("Tempos de DNS, TCP e TLS; status e cabeçalhos; referências e indícios no HTML. Conteúdo público não comprova vulnerabilidade.")
                         Hint("Autenticação interativa ainda não disponível.")
-                        TextButton(onClick={showHttpSettings=true}) {ActionGlyph();Text("Perfil e cabeçalhos HTTP")}
+                        TextButton(onClick={showHttpSettings=true}) {MenuGlyph("http");Spacer(Modifier.width(8.dp));Text("Perfil e cabeçalhos HTTP")}
                         TextButton(onClick={tab=1;inventoryFilter="Respostas";scope.launch {listState.scrollToItem(2)}}) {Text("Ver respostas em Alvos")}
                         if(capture.running) Hint("Captura ativa: esta requisição será enviada pela VPN local e entrará no PCAP.")
                     }}
@@ -376,8 +376,8 @@ DropdownMenuItem(text={Text("Nova sessão")},leadingIcon={MenuGlyph("new")},onCl
                             TextButton(onClick={showPositions=true}) {MenuGlyph("info");Spacer(Modifier.width(8.dp));Text("Ver posições desta sessão (${positions.size})")}
                             if(showPositions) RelatedEvidenceDialog(positions) {showPositions=false}
                         }
-                        CopyAction("Copiar sessão para análise") {AnalysisCopy.session(session)}
-                        Hint("Copia os registros preservados com contexto e evidências. Para sessões grandes, use Exportar JSON.")
+                        Box(Modifier.tutorTarget(8)) {CopyAction("Copiar sessão para análise") {AnalysisCopy.session(session)}}
+                        Hint("Copia os registros preservados com contexto e evidências. Sessões grandes são divididas em partes numeradas: copie e cole todas em ordem no agente. Para um único arquivo, use Exportar JSON.")
                         FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {OutlinedButton(onClick={useTutorTarget();onExport(false)},modifier=Modifier.tutorTarget(6)) {Text("Exportar JSON")}; OutlinedButton(onClick={onExport(true)}) {Text("Exportar CSV")}}
                         TextButton(onClick={historyExpanded=!historyExpanded;model.trace("history_details",mapOf("expanded" to "$historyExpanded"))}) {Text(if(historyExpanded) "Ocultar histórico" else "Ver histórico de sessões")}
                         if(historyExpanded) history.take(20).forEach {s -> TextButton(onClick={model.trace("history_session_selected");model.select(s)},enabled=!busy&&!capture.running) {Text("${time(s.created)} · ${s.id.take(8)} · ${s.records.size} registros")}}

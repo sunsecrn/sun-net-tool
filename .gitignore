@@ -62,3 +62,5 @@ docs/screenshots/*
 docs/VALIDATION.md
 docs/A17-VALIDATION.md
 docs/roteiro-teste-final.md
+# Image generation originals; only reviewed final assets belong in Git.
+/generated_images/

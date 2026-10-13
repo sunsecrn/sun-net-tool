@@ -8,8 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 
 internal fun evidenceLabel(kind:String)=when(kind) {
     "location"->"Localização da sessão";"version"->"Versão anunciada";"security-header"->"Headers de segurança";"cve"->"Possível CVE";"cve-check"->"Consulta de CVEs";"http"->"Resposta HTTP";"dns"->"Consulta DNS";"dns-error"->"Falha de DNS";"portal"->"Teste de portal";"network"->"Estado informado pelo Android";"reference"->"Referência encontrada";"service"->"Serviço observado";"domain"->"Nome encontrado";"address"->"Endereço encontrado";"error"->"Tentativa sem sucesso";else->kind
@@ -91,10 +89,10 @@ internal fun evidenceLabel(kind:String)=when(kind) {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun RelatedEvidenceDialog(records:List<Record>,onClose:()->Unit) {
-    Dialog(onDismissRequest=onClose,properties=DialogProperties(usePlatformDefaultWidth=false)) {
+    ScreenDialog(onClose) {
         Scaffold(topBar={TopAppBar(title={Text("Evidências relacionadas")},navigationIcon={TextButton(onClick=onClose) {Text("Fechar")}})}) {padding->
-            LazyColumn(Modifier.fillMaxSize().padding(padding),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
-                item {Text("${records.size} registros desta investigação",style=MaterialTheme.typography.labelLarge);CopyAction("Copiar investigação") {AnalysisCopy.records("Investigação relacionada",records)}}
+            LazyColumn(Modifier.fillMaxSize().padding(padding).imePadding(),contentPadding=PaddingValues(start=16.dp,end=16.dp,top=16.dp,bottom=24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
+                item {Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {Text("${records.size} registros desta investigação",style=MaterialTheme.typography.labelLarge);CopyAction("Copiar investigação") {AnalysisCopy.records("Investigação relacionada",records)}}}
                 items(records.distinctBy {it.id},key={it.id}) {r->OutlinedCard(Modifier.fillMaxWidth()) {Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {Text(evidenceLabel(r.kind),style=MaterialTheme.typography.titleMedium);EvidenceDetails(r)}}}
             }
         }

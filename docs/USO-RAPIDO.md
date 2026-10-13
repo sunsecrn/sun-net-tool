@@ -1,19 +1,19 @@
 # Sun NetTool: uso rápido
 
-No primeiro acesso, o guia destaca os controles reais com Compose Showcase. Use Próximo e Voltar, toque no controle destacado para utilizá-lo ou Pular para sair. O progresso é salvo. Para repetir, abra Mais > Modo tutor. Avançar no guia não executa diagnósticos nem solicita permissões.
+No primeiro acesso, o guia destaca os controles reais com Compose Showcase. Use Próximo e Voltar, toque no controle destacado para utilizá-lo ou Pular para sair. Os dez passos incluem perfis de portas, segurança e possíveis CVEs, cópia da sessão em partes e Configurações gerais com debug e GPS opcional. O progresso é salvo. Para repetir, abra Menu > Modo tutor. Avançar no guia não executa diagnósticos nem solicita permissões.
 
 1. Em Rede, confira Meu aparelho, Gateway e DNS. Usar gateway preenche o alvo. Investigar DNS da rede consulta nomes dos endereços observados e mostra resultados em Alvos > DNS.
 2. Em Descoberta, use a faixa preenchida ou selecione um lote /24 quando a rede for maior. Cada execução continua limitada a 256 alvos. mDNS consulta anúncios locais como complemento ao DNS comum.
 3. Use Mais recon para selecionar um alvo. Testar portas usa 1.000 comuns, com nmap-services importado, ou portas personalizadas. A opção Identificar serviços faz verificações de protocolo em até 16 portas abertas. O resumo informa abertas, recusadas, sem resposta e erros.
-4. Em HTTP, informe a URL e execute. O app abre Alvos > Respostas, incluindo cabeçalhos e erros. Os demais filtros em Alvos reúnem serviços, nomes, referências e indícios. Mais > Configurar HTTP permite escolher ou editar os cabeçalhos de compatibilidade.
+4. Em HTTP, informe a URL e execute. O app abre Alvos > Respostas, incluindo cabeçalhos e erros. Os demais filtros em Alvos reúnem serviços, nomes, referências e indícios. Menu > Configurações gerais > Perfil e cabeçalhos HTTP permite escolher ou editar os cabeçalhos de compatibilidade.
 5. Em Captura, inicie a VPN local. Use um teste pronto, o gateway ou um serviço observado, e toque Gerar tráfego. Com captura ativa, os diagnósticos de Rede e HTTP também passam pela VPN. Pare a captura antes de buscar texto/regex ou exportar PCAP. HTTPS permanece criptografado no PCAP.
-6. Mais > Debug da sessão mostra as tentativas e seus resultados, com busca e filtros. Abra um grupo de portas para ver cada porta, tempo e causa. Sessão > Registro debug ativa também eventos de navegação, disponíveis no filtro App.
+6. Menu > Configurações gerais > Abrir debug da sessão mostra as tentativas e seus resultados, com busca e filtros. Abra um grupo de portas para ver cada porta, tempo e causa. Configurações gerais > Registro debug ativa também eventos de navegação, disponíveis no filtro App.
 7. Verificar portal consulta um endereço público que normalmente responde 204. Respostas diferentes e redirects aparecem como indícios em Alvos > Portal. Abrir Wi-Fi / login leva às configurações Android para acessar o login oferecido pela rede. Refaça a verificação depois do login; o app não fornece autenticação própria.
-8. Em Sessão, exporte JSON/CSV ou reabra uma investigação. Mais > Nova sessão inicia outra investigação. A exportação preserva os grupos com os resultados individuais das portas.
+8. Em Sessão, exporte JSON/CSV ou reabra uma investigação. Menu > Nova sessão inicia outra investigação. A exportação preserva os grupos com os resultados individuais das portas.
 
 ## Registro disponível
 
-O relatório JSON contém sessão, ações de diagnóstico iniciadas, horários, alvos, resultados, erros, origem e vínculos de evidências. Alguns módulos registram tempos DNS/TCP/TLS/HTTP. Captura parada adiciona resumo e fluxos. Não é gravação de todas as interações: toques, navegação e todas as trocas de rede não são registrados sistematicamente. Na versão0.2.0, Sessão > Registro debug permite ativar um diário adicional de navegação, ações, mudanças de rede, operações e erros. Use Exportar debug JSON para compartilhar e desative após testar. Não é gravação de todos os toques. Veja DEBUG.md.
+O relatório JSON contém sessão, ações de diagnóstico iniciadas, horários, alvos, resultados, erros, origem e vínculos de evidências. Alguns módulos registram tempos DNS/TCP/TLS/HTTP. Captura parada adiciona resumo e fluxos. Não é gravação de todas as interações: toques, navegação e todas as trocas de rede não são registrados sistematicamente. Na versão0.2.0, Configurações gerais > Registro debug permite ativar um diário adicional de navegação, ações, mudanças de rede, operações e erros. Use Exportar debug JSON para compartilhar e desative após testar. Não é gravação de todos os toques. Veja DEBUG.md.
 
 Relatórios mascaram credenciais conhecidas e parâmetros de URL. PCAP contém bytes originais, inclusive dados claros possivelmente sensíveis; prefira JSON da sessão ao compartilhar análise geral. Até 20 sessões e 4.000 grupos/eventos por sessão. Captura limitada a10min/25MiB, somente NetTool, sem descriptografia HTTPS.
 
@@ -62,3 +62,12 @@ Conteúdos acima de 400.000 bytes abrem **Copiar em partes**. Copie e cole todas
 Uma faixa fixa acima da navegação mostra a etapa real, o alvo, o tempo decorrido e o botão Cancelar. A contagem indica portas processadas, não portas abertas. DNS, HTTP, TLS, SSH e consultas de CVEs informam o que estão aguardando. A descoberta informa IPs processados. mDNS explica a janela de escuta. O gerador de tráfego e a busca PCAP têm status e cancelamento próprios.
 
 O resumo copiado informa a rede, scans concluídos, portas abertas únicas, tipos de registros, operações sem conclusão e a presença ou ausência de captura e consultas de CVEs. Os registros completos preservados seguem depois do resumo.
+
+
+### Configurações gerais e localização (0.6.0)
+
+O ícone de três pontos abre o menu. Configurações gerais reúne perfil HTTP, registro/debug e Anotar GPS / localização. A localização vem desligada e só solicita permissão quando ativada. O Android permite localização precisa ou aproximada.
+
+A coleta é local e somente enquanto o app está visível. Posições recentes incluem coordenadas, horário da medição, precisão, provedor e indicação de posição simulada quando aplicável. Evidências registradas até 60 segundos depois recebem locationRecordId. A posição pertence ao telefone, não ao alvo remoto. A captura marca as amostras coletadas enquanto está ativa; o PCAP mantém seu formato original, e as posições ficam no JSON da sessão para correlação por horário. Coleta pausada em segundo plano não inventa posições para pacotes capturados depois.
+
+Em Sessão, Ver posições desta sessão abre as medições. Cópias e exportações incluem essas coordenadas. Desligar interrompe novos registros; posições já salvas permanecem na sessão. GPS indisponível, permissão negada ou ausência de posição são apresentados como estado de espera, sem coordenadas presumidas.

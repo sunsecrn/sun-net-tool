@@ -77,6 +77,7 @@ internal object AnalysisCopy {
 
 @Composable internal fun CopyAction(label: String, text: () -> String) {
     val context=LocalContext.current
+    val onTutorUse=LocalTutorOnUse.current
     var pending by remember {mutableStateOf<List<String>>(emptyList())}
     var copied by remember {mutableStateOf(setOf<Int>())}
     fun put(value:String):Boolean = runCatching {
@@ -92,6 +93,7 @@ internal object AnalysisCopy {
         }
     },confirmButton={TextButton(onClick={pending=emptyList()}) {Text("Fechar")}})
     TextButton(onClick={
+        onTutorUse()
         runCatching {
             val value=text()
             if(!AnalysisCopy.fits(value)) {

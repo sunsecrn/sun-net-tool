@@ -9,8 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import dev.nettool.core.HttpProfile
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -32,11 +30,11 @@ import java.util.Locale
             category && (query.isBlank() || "${r.target} ${r.message} ${r.details}".contains(query,true))
         }
     }
-    Dialog(onDismissRequest=onClose,properties=DialogProperties(usePlatformDefaultWidth=false)) {
+    ScreenDialog(onClose) {
         Scaffold(topBar={TopAppBar(title={Text("Debug da sessão")},navigationIcon={TextButton(onClick=onClose) {Text("Fechar")}})}) {padding->
-            LazyColumn(Modifier.fillMaxSize().padding(padding),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            LazyColumn(Modifier.fillMaxSize().padding(padding).imePadding(),contentPadding=PaddingValues(start=16.dp,end=16.dp,top=16.dp,bottom=24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 item {Text("${records.size} grupos/eventos · ${session.dropped} registros antigos descartados",style=MaterialTheme.typography.bodySmall)}
-                item {Text("Tentativas de portas são agrupadas por resultado. Abra um grupo para ver cada porta e tempo. Eventos do app exigem Registro debug ativado em Sessão.",style=MaterialTheme.typography.bodySmall)}
+                item {Text("Tentativas de portas são agrupadas por resultado. Abra um grupo para ver cada porta e tempo. Eventos do app exigem Registro debug ativado em Configurações gerais.",style=MaterialTheme.typography.bodySmall)}
                 item {OutlinedTextField(value=query,onValueChange={query=it},label={Text("Buscar alvo, porta ou erro")},modifier=Modifier.fillMaxWidth())}
                 item {FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {listOf("Todos","Erros","Portas","DNS","Rede","App").forEach {value->FilterChip(selected=filter==value,onClick={filter=value},label={Text(value)})}}}
                 if(records.isEmpty()) item {Text("Nenhum evento neste filtro.")}
@@ -61,9 +59,9 @@ import java.util.Locale
 @Composable internal fun HttpSettingsDialog(settings:HttpSettings,onClose:()->Unit) {
     var values by remember {mutableStateOf(settings.headers())}
     var error by remember {mutableStateOf("")}
-    Dialog(onDismissRequest=onClose,properties=DialogProperties(usePlatformDefaultWidth=false)) {
+    ScreenDialog(onClose) {
         Scaffold(topBar={TopAppBar(title={Text("Requisições HTTP")},navigationIcon={TextButton(onClick=onClose) {Text("Fechar")}})}) {padding->
-            LazyColumn(Modifier.fillMaxSize().padding(padding).imePadding(),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
+            LazyColumn(Modifier.fillMaxSize().padding(padding).imePadding(),contentPadding=PaddingValues(start=16.dp,end=16.dp,top=16.dp,bottom=24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
                 item {Text("Perfil usado nas requisições e no gerador da captura. Mudar cabeçalhos não resolve portas bloqueadas nem faz login no portal.")}
                 item {FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick={values=HttpProfile.defaults}) {Text("Padrão do app")}
