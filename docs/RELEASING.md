@@ -15,6 +15,8 @@ Repositório solicitado: `sunsecrn/sun-net-tool` (público). Não havia Git ou r
 
 ## Configuração pelo mantenedor
 
+Para criação local e cadastro pessoal dos segredos, siga [SIGNING-SETUP.md](SIGNING-SETUP.md). O script de criação não transmite segredos; o cadastro no GitHub é realizado pelo próprio mantenedor.
+
 1. Proteja `main` e tags de versão, restrinja quem pode executar/alterar workflows e exija revisão. Não aprove tags de código não revisado.
 2. Crie os environments `release-signing` e `release-publication`, com aprovadores obrigatórios, proibição de autoaprovação quando disponível e restrição a `main`. A mera referência no YAML não configura essas proteções: sem configuração, GitHub pode criar environments desprotegidos. Confirme suporte no plano da organização.
 3. Após aprovação específica, use uma chave de distribuição sob controle do mantenedor, com backup seguro. Não envie a chave ou senhas em issues, chat, Git, logs ou artefatos. Nunca use a chave debug como chave de release.
